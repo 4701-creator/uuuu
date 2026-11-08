@@ -17,6 +17,8 @@ jobs:
         run: |
           flutter create . --project-name auramatrix_ai --platforms=android
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application android:usesCleartextTraffic="true"#' android/app/src/main/AndroidManifest.xml
+          echo 'subprojects { afterEvaluate { project.extensions.findByName("android")?.withGroovyBuilder { "compileSdkVersion"(36) } } }' | cat - android/build.gradle.kts > /tmp/b.kts
+          mv /tmp/b.kts android/build.gradle.kts
           flutter pub get
           flutter build apk --release
       - uses: actions/upload-artifact@v4
