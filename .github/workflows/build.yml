@@ -1,1 +1,31 @@
-
+name: Build APK
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "رابط الخادم"
+        default: "http://10.0.2.2:3000"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip AuraMatrix_AI.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - working-directory: auramatrix_ai/app
+        run: |
+          flutter create . --project-name auramatrix_ai --platforms=android
+          sed -i "s#http://10.0.2.2:3000#${{ inputs.server_url }}#" lib/api.dart
+          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application android:usesCleartextTraffic="true"#' android/app/src/main/AndroidManifest.xml
+          flutter pub get
+          flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AuraMatrix-APK
+          path: auramatrix_ai/app/build/app/outputs/flutter-apk/app-release.apk
